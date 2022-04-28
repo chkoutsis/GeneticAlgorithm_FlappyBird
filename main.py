@@ -1,4 +1,3 @@
-from pydoc import render_doc
 import pygame 
 import random
 import sys
@@ -33,10 +32,9 @@ pygame.display.set_caption('Flappy Bird')
 clock = pygame.time.Clock()
 
 class Bird: 
-    def __init__(self, color):
+    def __init__(self):
         self.x = WIDTH_BIRD
         self.y =  HEIGHT_BIRD
-        self.color = color
 
     def move(self):
         self.move_x = 0 
@@ -94,11 +92,12 @@ class Pipe_Manager():
 
     def manage(self, dt):
         for pipe in self.upper_pipes[:]: 
-            pipe.score_counted = False
+            pipe.score_counted = True
             pipe.pos.x -= self.pipe_speed * dt
             if pipe.pos.x + self.pipe_width < 0: 
                 removed_upper = self.upper_pipes.remove(pipe)    
                 del removed_upper 
+                self.score +=1
         for pipe in self.lower_pipes[:]: 
             pipe.pos.x -= self.pipe_speed * dt      
             if pipe.pos.x + self.pipe_width < 0: 
@@ -114,10 +113,8 @@ class Pipe_Manager():
 def collision(pipe_manager, bird_hitbox):
     display_upper_hitboxes = []
     display_lower_hitboxes = []
-
     #Check if bird is into the limits
     if bird_hitbox.y > HEIGHT or bird_hitbox.y < 0: game_over()
-
     #Check if bird hits the upper pipe
     for pipe in pipe_manager.upper_pipes:
         display_upper_hitboxes.append(pipe)
@@ -125,7 +122,6 @@ def collision(pipe_manager, bird_hitbox):
         pipe_display = game_display.blit(pygame.transform.rotate(PIPE_IMAGE, 180), pipe.pos)
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display): game_over()
-
     #Check if bird hits the lower pipe
     for pipe in pipe_manager.lower_pipes:
         display_lower_hitboxes.append(pipe)
@@ -135,16 +131,7 @@ def collision(pipe_manager, bird_hitbox):
             if bird_hitbox.colliderect(pipe_display): game_over()
 
 
-def scoreboard(pipe_manager, bird_hitbox):
-    display_upper_hitboxes = []
-    for pipe in pipe_manager.upper_pipes:
-        display_upper_hitboxes.append(pipe)
-        pipe_hitbox = pygame.Rect(display_upper_hitboxes[0].hitbox)
-        pipe_display = game_display.blit(pygame.transform.rotate(PIPE_IMAGE, 180), pipe.pos)
-        if pipe_hitbox.colliderect(pipe_display):
-            if bird_hitbox.x - 5.5 > pipe_display.bottomright[0] and not pipe.score_counted:  
-                pipe_manager.score +=1
-                pipe.score_counted = True
+def scoreboard(pipe_manager):
     font_score = pygame.font.Font(None, 72)
     text_score = font_score.render(str(pipe_manager.score), 2, SCORE_COLORS)
     game_display.blit(text_score, (WIDTH/2.2, 30))
@@ -156,12 +143,10 @@ def player(bird, pipe_manager):
     bird.move()    
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:  bird.y += BIRD_VELOCITY_Y
-
     #Check for collisions
     collision(pipe_manager, bird.hitbox)
-
     #Score
-    scoreboard(pipe_manager, bird.hitbox)
+    scoreboard(pipe_manager)
 
 
 def game_over():
@@ -174,9 +159,9 @@ def game_over():
     main()
         
 
-def main():
+def main(): 
+    bird = Bird()
     pipe_manager = Pipe_Manager()
-    bird = Bird(RED)
     run_game = True
     dt = 0
     while run_game:
