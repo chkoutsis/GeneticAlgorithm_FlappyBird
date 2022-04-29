@@ -5,8 +5,8 @@ import sys
 import os
 import tensorflow
 import numpy as np 
-import pygad.kerasga
-
+import warnings
+warnings.filterwarnings("ignore")
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -31,7 +31,8 @@ GRAVITY = .2
 FPS = 60
 BIRD_VELOCITY_Y = -10  
 BIRD_MAX_VELOCITY_Y = 5   
-N_POPULATION_BIRD = 6
+N_POPULATION_BIRD = 15
+MUTATION_THRESHOLD = 0.08
 
 pygame.init()
 game_display = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -84,8 +85,8 @@ class Pipe_Manager():
         self.manage(dt)
 
     def make_pipe(self):
-        height = random.randint(HEIGHT/3, HEIGHT/2)
-        gap = random.randint(HEIGHT/4, HEIGHT/3)
+        height = random.randint(HEIGHT/4, HEIGHT/1.5)
+        gap = random.randint(150, 180)
         height_2 = HEIGHT - (height + gap)
 
         surf1 = pygame.Surface((self.pipe_width, height)).convert_alpha()
@@ -96,7 +97,7 @@ class Pipe_Manager():
         surf2.fill((0, 0, 0, 0))
         hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, height_2) 
 
-        pipe = Pipe(surf1, pygame.Vector2(WIDTH, random.randint(-200,0)), height, hitbox_1)
+        pipe = Pipe(surf1, pygame.Vector2(WIDTH, random.randint(-50,-10)), height, hitbox_1)
         pipe2 = Pipe(surf2, pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
         self.upper_pipes.append(pipe)
         self.lower_pipes.append(pipe2)
@@ -179,8 +180,8 @@ def bird_over(bird, pipe_manager):
 
 def DNA():    
     input_layer  = tensorflow.keras.Input((6), name='Input')
-    dense_layer = tensorflow.keras.layers.Dense(10, activation="relu", name='Hidden')(input_layer)
-    output_layer = tensorflow.keras.layers.Dense(1, activation="linear", name='Output')(dense_layer)
+   # dense_layer = tensorflow.keras.layers.Dense(10, activation="relu", name='Hidden')(input_layer)
+    output_layer = tensorflow.keras.layers.Dense(1, activation="linear", name='Output')(input_layer)
     model = tensorflow.keras.Model(inputs=input_layer, outputs=output_layer)
     return model
 
@@ -202,17 +203,74 @@ def last_bird(bird, pipe_manager):
         last_bird = bird
     print(last_bird)
     return last_bird
+
+def mutation(weight, MUTATION_THRESHOLD):
+    print('baros einai', weight.dtype)
+    if random.random() < MUTATION_THRESHOLD:
+        return np.array([np.random.uniform(-1,1)])
+    return weight
+
+def crossover(parent_bird_1, parent_bird_2):
+    child = Bird()
+    parent_1_weights = parent_bird_1.dna.get_weights()[0]
+    parent_2_weights = parent_bird_2.dna.get_weights()[0]
+    parent_1_bias = parent_bird_1.dna.get_weights()[1]
+    parent_2_bias = parent_bird_2.dna.get_weights()[1]
+    print(parent_1_weights, parent_2_weights)
+    print('*********************************************')
+    print(parent_1_bias, parent_2_bias)
+    print('*********************************************')
+    child_weights = []
+    new_weight = []
+    mutation_child_weights = []
+    for i in range(len(parent_1_weights)):
+        new_weights = (parent_1_weights[i] + parent_2_weights[i]) / 2
+        child_weights.append(new_weights)
+    print('child weights ', child_weights)
+    for weight in child_weights:
+       new_weight = mutation(weight, MUTATION_THRESHOLD)
+       mutation_child_weights.append(new_weight)
+    print('mutation_child_weights ', mutation_child_weights)
+    print('////////////////////////////////////////////////////////////')
+    print(np.array(mutation_child_weights), 'baroi se lista')
+    print(np.array(mutation_child_weights).shape, 'shape baroi se lista')
+    print(np.array(parent_1_bias + parent_2_bias/2), 'bias')
+    kid = np.array([np.array(mutation_child_weights), np.array((parent_1_bias + parent_2_bias)/2)])
+    print('gios ', kid.shape)
+    child.dna.set_weights(kid)
+    return child
   
 def reproduction(population):
-    sum_score = 0
-    for bird in population: 
-        sum_score += bird.final_score 
-    for bird in population: 
-        bird.chance_pick_bird = bird.final_score / sum_score
-        
+    new_population = []
+    for i in range(len(population)):
+        sum_score = 0
+        start_score = 0
+        for bird in population: 
+            sum_score += bird.final_score 
+        random_1 = random.randint(0,sum_score)
+        random_2 = random.randint(0,sum_score)
+        parent_bird_1 = None
+        parent_bird_2 = None
+        for bird in population: 
+            if random_1 in range(start_score, start_score + bird.final_score): parent_bird_1 = bird
+            if random_2 in range(start_score, start_score + bird.final_score): parent_bird_2 = bird
+            start_score = start_score + bird.final_score 
+        if  parent_bird_1 == None: parent_bird_1 = population[random.randint(0,N_POPULATION_BIRD-1)] 
+        if  parent_bird_2 == None: parent_bird_2 = population[random.randint(0,N_POPULATION_BIRD-1)] 
+        child = crossover(parent_bird_1, parent_bird_2)
+        new_population.append(child)   
+    return new_population
+
+def generation_text(generation_it):
+    font_score = pygame.font.Font(None, 72)
+    text = 'Generation ' + str(generation_it) 
+    text_generation = font_score.render(text, 2, SCORE_COLORS)
+    game_display.blit(text_generation, (WIDTH - 350, HEIGHT - 150))
+
 def main(): 
     population = bird_population()
     generation_flag = True
+    generation_it = 1 
     while generation_flag:
         n = N_POPULATION_BIRD
         pipe_manager = Pipe_Manager()
@@ -230,11 +288,14 @@ def main():
             for bird in population:
                 n = player(bird, pipe_manager, n)
             pipe_manager.manage_pipes(dt)
+            generation_text(generation_it)
             pygame.display.update()
             dt=clock.tick(FPS)
             if n ==0:
-                break
-        reproduction(population)
+                run_game = False
+                generation_it += 1
+        population = reproduction(population)
+        print('population = ', len(population))
 
 if __name__ == '__main__':
     main()
