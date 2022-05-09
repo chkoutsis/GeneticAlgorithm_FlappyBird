@@ -16,9 +16,6 @@ BIRD_IMAGE = pygame.image.load(PATH + '\\assets\\bird.png')
 PIPE_IMAGE = pygame.image.load(PATH + '\\assets\\red_pipe.png')
 BACKGROUND_IMAGE = pygame.image.load(PATH + '\\assets\\background.png')
 
-WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
-RED = (255, 0, 0)
 SCORE_COLORS = '#1C3C7B'
 WIDTH = 800
 HEIGHT = 600
@@ -28,10 +25,10 @@ WIDTH_PIPES = 50
 PIPE_VELOCITY = .3
 PIPE2PIPE = 1300
 GRAVITY = .2
-FPS = 60
+FPS = 30
 BIRD_VELOCITY_Y = -10  
 BIRD_MAX_VELOCITY_Y = 5   
-N_POPULATION_BIRD = 15
+N_POPULATION_BIRD = 6
 MUTATION_THRESHOLD = 0.08
 
 pygame.init()
@@ -63,8 +60,7 @@ class Bird:
 
 
 class Pipe:
-    def __init__(self, img, pos, height, hitbox):
-        self.img = img
+    def __init__(self, pos, height, hitbox):
         self.pos = pos
         self.hitbox_pos = pos
         self.height = height
@@ -86,19 +82,14 @@ class Pipe_Manager():
 
     def make_pipe(self):
         height = random.randint(HEIGHT/4, HEIGHT/1.5)
-        gap = random.randint(150, 180)
+        gap = random.randint(170, 200)
         height_2 = HEIGHT - (height + gap)
 
-        surf1 = pygame.Surface((self.pipe_width, height)).convert_alpha()
-        surf1.fill((0, 0, 0, 0))
         hitbox_1 = (self.pipe_width, 0, self.pipe_width, height) 
-
-        surf2 = pygame.Surface((self.pipe_width, height_2)).convert_alpha()
-        surf2.fill((0, 0, 0, 0))
         hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, height_2) 
 
-        pipe = Pipe(surf1, pygame.Vector2(WIDTH, random.randint(-50,-10)), height, hitbox_1)
-        pipe2 = Pipe(surf2, pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
+        pipe = Pipe(pygame.Vector2(WIDTH, random.randint(-50,-10)), height, hitbox_1)
+        pipe2 = Pipe(pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
         self.upper_pipes.append(pipe)
         self.lower_pipes.append(pipe2)
 
@@ -128,7 +119,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
     #Check if bird is into the limits
     if bird_hitbox.y > HEIGHT or bird_hitbox.y < 0:
         bird_over(bird, pipe_manager)
-        n = number -1
+        n = number - 1
     #Check if bird hits the upper pipe
     for pipe in pipe_manager.upper_pipes:
         display_upper_hitboxes.append(pipe)
@@ -137,7 +128,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display):
                 bird_over(bird, pipe_manager)
-                n = number -1
+                n = number - 1
     #Check if bird hits the lower pipe
     for pipe in pipe_manager.lower_pipes:
         display_lower_hitboxes.append(pipe)
@@ -146,7 +137,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display):
                 bird_over(bird, pipe_manager)
-                n = number -1
+                n = number - 1
     return n
 
 
@@ -161,12 +152,9 @@ def player(bird, pipe_manager, number):
     if bird.is_alive is True:
         bird.hitbox = game_display.blit(BIRD_IMAGE, (bird.x-20, bird.y-15))
         observations = data(bird, pipe_manager)
-    # print(observations ,observations.shape)
         prediction_move = bird.dna.predict([observations])
-        if prediction_move > 0 :
-            bird.jump()
-        else: 
-            bird.move()    
+        if prediction_move > 0 : bird.jump()
+        else: bird.move()    
         #Check for collisions
         n = collision(pipe_manager, bird.hitbox, bird, number)
         #Score
@@ -180,8 +168,8 @@ def bird_over(bird, pipe_manager):
 
 def DNA():    
     input_layer  = tensorflow.keras.Input((6), name='Input')
-   # dense_layer = tensorflow.keras.layers.Dense(10, activation="relu", name='Hidden')(input_layer)
-    output_layer = tensorflow.keras.layers.Dense(1, activation="linear", name='Output')(input_layer)
+    dense_layer = tensorflow.keras.layers.Dense(10, activation="relu", name='Hidden')(input_layer)
+    output_layer = tensorflow.keras.layers.Dense(1, activation="linear", name='Output')(dense_layer)
     model = tensorflow.keras.Model(inputs=input_layer, outputs=output_layer)
     return model
 
@@ -205,41 +193,73 @@ def last_bird(bird, pipe_manager):
     return last_bird
 
 def mutation(weight, MUTATION_THRESHOLD):
-    print('baros einai', weight.dtype)
     if random.random() < MUTATION_THRESHOLD:
-        return np.array([np.random.uniform(-1,1)])
+        return np.random.uniform(-1,1)
     return weight
 
-def crossover(parent_bird_1, parent_bird_2):
-    child = Bird()
+def hidden_layer(parent_bird_1, parent_bird_2):
     parent_1_weights = parent_bird_1.dna.get_weights()[0]
     parent_2_weights = parent_bird_2.dna.get_weights()[0]
     parent_1_bias = parent_bird_1.dna.get_weights()[1]
     parent_2_bias = parent_bird_2.dna.get_weights()[1]
-    print(parent_1_weights, parent_2_weights)
-    print('*********************************************')
-    print(parent_1_bias, parent_2_bias)
-    print('*********************************************')
     child_weights = []
-    new_weight = []
+    new_weights_i = []
+    new_weights_j = []
+    new_weight_i = []
     mutation_child_weights = []
+    child_bias = []
     for i in range(len(parent_1_weights)):
-        new_weights = (parent_1_weights[i] + parent_2_weights[i]) / 2
-        child_weights.append(new_weights)
-    print('child weights ', child_weights)
-    for weight in child_weights:
-       new_weight = mutation(weight, MUTATION_THRESHOLD)
-       mutation_child_weights.append(new_weight)
-    print('mutation_child_weights ', mutation_child_weights)
-    print('////////////////////////////////////////////////////////////')
-    print(np.array(mutation_child_weights), 'baroi se lista')
-    print(np.array(mutation_child_weights).shape, 'shape baroi se lista')
-    print(np.array(parent_1_bias + parent_2_bias/2), 'bias')
-    kid = np.array([np.array(mutation_child_weights), np.array((parent_1_bias + parent_2_bias)/2)])
-    print('gios ', kid.shape)
+        for j in range(len(parent_1_weights[i])):
+            new_weights_j = (parent_1_weights[i][j] + parent_2_weights[i][j]) / 2
+            new_weights_i.append(new_weights_j)
+        child_weights.append(new_weights_i)
+        new_weights_i = []
+    for weight_i in child_weights:
+        for weight_j in weight_i:
+            new_weight_j = mutation(weight_j, MUTATION_THRESHOLD)
+            new_weight_i.append(new_weight_j)
+        mutation_child_weights.append(new_weight_i)
+        new_weight_i = []
+    for i in range(len(parent_1_bias)):
+        new_child_bias = (parent_1_bias[i] + parent_2_bias[i])/2
+        child_bias.append(new_child_bias)
+    return np.array(mutation_child_weights, dtype='float32'), np.array(child_bias, dtype='float32')
+
+def output_layer(parent_bird_1, parent_bird_2):
+    parent_1_weights = parent_bird_1.dna.get_weights()[2]
+    parent_2_weights = parent_bird_2.dna.get_weights()[2]
+    parent_1_bias = parent_bird_1.dna.get_weights()[3]
+    parent_2_bias = parent_bird_2.dna.get_weights()[3]
+    child_weights = []
+    new_weights_i = []
+    new_weights_j = []
+    new_weight_i = []
+    mutation_child_weights = []
+    child_bias = []
+    for i in range(len(parent_1_weights)):
+        for j in range(len(parent_1_weights[i])):
+            new_weights_j = (parent_1_weights[i][j] + parent_2_weights[i][j]) / 2
+            new_weights_i.append(new_weights_j)
+        child_weights.append(new_weights_i)
+        new_weights_i = []
+    for weight_i in child_weights:
+        for weight_j in weight_i:
+            new_weight_j = mutation(weight_j, MUTATION_THRESHOLD)
+            new_weight_i.append(new_weight_j)
+        mutation_child_weights.append(new_weight_i)
+        new_weight_i = []
+    for i in range(len(parent_1_bias)):
+        new_child_bias = (parent_1_bias[i] + parent_2_bias[i])/2
+        child_bias.append(new_child_bias)
+    return np.array(mutation_child_weights, dtype='float32'), np.array(child_bias, dtype='float32')
+
+def crossover(parent_bird_1, parent_bird_2):
+    child = Bird()
+    kid = [hidden_layer(parent_bird_1, parent_bird_2)[0], hidden_layer(parent_bird_1, parent_bird_2)[1],
+           output_layer(parent_bird_1, parent_bird_2)[0], output_layer(parent_bird_1, parent_bird_2)[1]]
     child.dna.set_weights(kid)
-    return child
-  
+    return child    
+
 def reproduction(population):
     new_population = []
     for i in range(len(population)):
@@ -295,7 +315,6 @@ def main():
                 run_game = False
                 generation_it += 1
         population = reproduction(population)
-        print('population = ', len(population))
 
 if __name__ == '__main__':
     main()
