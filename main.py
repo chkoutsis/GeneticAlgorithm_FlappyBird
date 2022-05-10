@@ -43,8 +43,7 @@ class Bird:
         self.y += self.move_y 
 
 class Pipe:
-    def __init__(self, img, pos, height, hitbox):
-        self.img = img
+    def __init__(self, pos, height, hitbox):
         self.pos = pos
         self.hitbox_pos = pos
         self.height = height
@@ -64,23 +63,15 @@ class Pipe_Manager():
     def manage_pipes(self, dt):
         self.spawner(dt)
         self.manage(dt)
-        self.display()
 
     def make_pipe(self):
-        height = random.randint(HEIGHT/3, HEIGHT/2)
-        gap = random.randint(HEIGHT/4, HEIGHT/3)
+        height = random.randint(HEIGHT/5, HEIGHT/1.5)
+        gap = random.randint(100, 150)
         height_2 = HEIGHT - (height + gap)
-
-        surf1 = pygame.Surface((self.pipe_width, height)).convert_alpha()
-        surf1.fill((0, 0, 0, 0))
         hitbox_1 = (self.pipe_width, 0, self.pipe_width, height) 
-
-        surf2 = pygame.Surface((self.pipe_width, height_2)).convert_alpha()
-        surf2.fill((0, 0, 0, 0))
-        hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, height_2) 
-
-        pipe = Pipe(surf1, pygame.Vector2(WIDTH, random.randint(-200,0)), height, hitbox_1)
-        pipe2 = Pipe(surf2, pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
+        hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, HEIGHT) 
+        pipe = Pipe(pygame.Vector2(WIDTH, 0), height, hitbox_1)
+        pipe2 = Pipe(pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
         self.upper_pipes.append(pipe)
         self.lower_pipes.append(pipe2)
 
@@ -103,12 +94,6 @@ class Pipe_Manager():
             if pipe.pos.x + self.pipe_width < 0: 
                 removed_lower = self.lower_pipes.remove(pipe) 
                 del removed_lower 
-        
-    def display(self):
-        for pipe in self.upper_pipes:  
-            game_display.blit(pygame.transform.rotate(PIPE_IMAGE, 180), pipe.pos)
-        for pipe in self.lower_pipes: 
-            game_display.blit(PIPE_IMAGE, pipe.pos)
 
 def collision(pipe_manager, bird_hitbox):
     display_upper_hitboxes = []
@@ -119,14 +104,14 @@ def collision(pipe_manager, bird_hitbox):
     for pipe in pipe_manager.upper_pipes:
         display_upper_hitboxes.append(pipe)
         pipe_hitbox = pygame.Rect(display_upper_hitboxes[0].hitbox)
-        pipe_display = game_display.blit(pygame.transform.rotate(PIPE_IMAGE, 180), pipe.pos)
+        pipe_display = game_display.blit(pygame.transform.rotate(pygame.transform.scale(PIPE_IMAGE, (WIDTH_PIPES, pipe.height)), 180), pipe.pos)
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display): game_over()
     #Check if bird hits the lower pipe
     for pipe in pipe_manager.lower_pipes:
         display_lower_hitboxes.append(pipe)
         pipe_hitbox = pygame.Rect(display_lower_hitboxes[0].hitbox)
-        pipe_display = game_display.blit(PIPE_IMAGE, pipe.pos)
+        pipe_display = game_display.blit((pygame.transform.scale(PIPE_IMAGE, (WIDTH_PIPES, pipe.height))), pipe.pos)
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display): game_over()
 
