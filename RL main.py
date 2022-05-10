@@ -28,7 +28,7 @@ GRAVITY = .2
 FPS = 30
 BIRD_VELOCITY_Y = -10  
 BIRD_MAX_VELOCITY_Y = 5   
-N_POPULATION_BIRD = 6
+N_POPULATION_BIRD = 8
 MUTATION_THRESHOLD = 0.08
 
 pygame.init()
@@ -81,14 +81,14 @@ class Pipe_Manager():
         self.manage(dt)
 
     def make_pipe(self):
-        height = random.randint(HEIGHT/4, HEIGHT/1.5)
-        gap = random.randint(170, 200)
+        height = random.randint(HEIGHT/5, HEIGHT/1.5)
+        gap = random.randint(100, 150)
         height_2 = HEIGHT - (height + gap)
 
         hitbox_1 = (self.pipe_width, 0, self.pipe_width, height) 
-        hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, height_2) 
+        hitbox_2 = (self.pipe_width,  height + gap, self.pipe_width, HEIGHT) 
 
-        pipe = Pipe(pygame.Vector2(WIDTH, random.randint(-50,-10)), height, hitbox_1)
+        pipe = Pipe(pygame.Vector2(WIDTH, 0), height, hitbox_1)
         pipe2 = Pipe(pygame.Vector2(WIDTH, height + gap), height_2, hitbox_2)
         self.upper_pipes.append(pipe)
         self.lower_pipes.append(pipe2)
@@ -116,6 +116,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
     display_upper_hitboxes = []
     display_lower_hitboxes = []
     n = number
+    
     #Check if bird is into the limits
     if bird_hitbox.y > HEIGHT or bird_hitbox.y < 0:
         bird_over(bird, pipe_manager)
@@ -124,7 +125,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
     for pipe in pipe_manager.upper_pipes:
         display_upper_hitboxes.append(pipe)
         pipe_hitbox = pygame.Rect(display_upper_hitboxes[0].hitbox)
-        pipe_display = game_display.blit(pygame.transform.rotate(PIPE_IMAGE, 180), pipe.pos)
+        pipe_display = game_display.blit(pygame.transform.rotate(pygame.transform.scale(PIPE_IMAGE, (WIDTH_PIPES, pipe.height)), 180), pipe.pos)
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display):
                 bird_over(bird, pipe_manager)
@@ -133,7 +134,7 @@ def collision(pipe_manager, bird_hitbox, bird, number):
     for pipe in pipe_manager.lower_pipes:
         display_lower_hitboxes.append(pipe)
         pipe_hitbox = pygame.Rect(display_lower_hitboxes[0].hitbox)
-        pipe_display = game_display.blit(PIPE_IMAGE, pipe.pos)
+        pipe_display = game_display.blit((pygame.transform.scale(PIPE_IMAGE, (WIDTH_PIPES, pipe.height))), pipe.pos)
         if pipe_hitbox.colliderect(pipe_display):
             if bird_hitbox.colliderect(pipe_display):
                 bird_over(bird, pipe_manager)
@@ -176,8 +177,8 @@ def DNA():
 def data(bird, pipe_manager):
     upper_pipe_display = pygame.Rect(pipe_manager.upper_pipes[0].hitbox)
     lower_pipe_display = pygame.Rect(pipe_manager.lower_pipes[0].hitbox)
-    inputs=[upper_pipe_display.x-bird.hitbox.width, bird.hitbox.y, HEIGHT-bird.hitbox.y,
-            lower_pipe_display.y-upper_pipe_display.height, upper_pipe_display.height, HEIGHT-lower_pipe_display.y]
+    inputs=[pipe_manager.upper_pipes[0].pos[0] - bird.hitbox.width, bird.hitbox.y, HEIGHT - bird.hitbox.y,
+            lower_pipe_display.y - upper_pipe_display.height, upper_pipe_display.height, HEIGHT - lower_pipe_display.y]
     return inputs
 
 def bird_population():
