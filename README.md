@@ -1,7 +1,5 @@
 # DRL_GeneticAlgorithm-Flappy_Bird
 
-<sub>Under construction</sub>
-
 ## DRL_GA-Main.py
 This script refers to flappy bird game using Genetic Algorithm.    
 
