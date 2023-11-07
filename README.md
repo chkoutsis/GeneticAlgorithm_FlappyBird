@@ -1,4 +1,4 @@
-# GeneticAlgorithm-Flappy_Bird
+# GeneticAlgorithm_FlappyBird
 
 ## ga_main.py
 This script refers to flappy bird game using Genetic Algorithm.    
