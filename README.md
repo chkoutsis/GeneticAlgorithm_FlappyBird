@@ -1,7 +1,4 @@
 # GeneticAlgorithm_FlappyBird
 
-## ga_main.py
-This script refers to flappy bird game using Genetic Algorithm.    
-
 ## main.py
-This script refers to flappy bird game, which the user can play with. The user can use the keyboard `W` for bird's wing flapping.
+This repository contains an implementation of the classic Flappy Bird game using a Genetic Algorithm. The **main.py** demonstrates the application of Genetic Algorithms to evolve strategies for playing Flappy Bird.
