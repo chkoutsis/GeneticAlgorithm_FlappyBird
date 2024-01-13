@@ -1,7 +1,13 @@
 import tensorflow as tf
 
 
-def DNA():
+def dna():
+    """
+    Create and return a neural network model representing DNA.
+
+    Returns:
+    - model (tf.keras.Model): A TensorFlow Keras model.
+    """
     input_layer = tf.keras.Input((6), name='Input')
     dense_layer = tf.keras.layers.Dense(
         10, activation="relu", name='Hidden')(input_layer)
