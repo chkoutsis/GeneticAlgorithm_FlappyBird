@@ -11,8 +11,6 @@ class Pipe:
         - pos (Vector2): The position of the pipe.
         - height (float): The height of the pipe.
         - hitbox (Rect): The hitbox of the pipe.
-
-        Default attributes:
         - hitbox_pos: The x-coordinate of the pipe's hitbox position.
         """
         self.pos = pos
