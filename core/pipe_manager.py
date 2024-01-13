@@ -1,6 +1,9 @@
 import random
 
-from config.config import *
+import pygame
+
+from config.config import (height, pipe_to_pipe, pipe_velocity, width,
+                           width_pipes)
 from core.pipe import Pipe
 
 
@@ -41,11 +44,9 @@ class PipeManager():
         for pipe in self.upper_pipes[:]:
             pipe.pos.x -= self.pipe_speed * dt
             if pipe.pos.x + self.pipe_width < -100:
-                removed_upper = self.upper_pipes.remove(pipe)
-                del removed_upper
+                self.upper_pipes.remove(pipe)
                 self.score += 1
         for pipe in self.lower_pipes[:]:
             pipe.pos.x -= self.pipe_speed * dt
             if pipe.pos.x + self.pipe_width < -100:
-                removed_lower = self.lower_pipes.remove(pipe)
-                del removed_lower
+                self.lower_pipes.remove(pipe)
