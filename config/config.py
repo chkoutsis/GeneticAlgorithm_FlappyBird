@@ -1,3 +1,26 @@
+'''
+Contains configuration variables and assets.
+
+Variables:
+- path (str): The current working directory.
+- bird_image (pygame.Surface): Image of the bird for the game.
+- pipe_image (pygame.Surface): Image of the pipes for the game.
+- background_image (pygame.Surface): Image of the background for the game.
+- SCORE_COLORS (str): Color code for displaying the score in the game.
+- WIDTH (int): Width of the game window.
+- HEIGHT (int): Height of the game window.
+- WIDTH_BIRD (float): Width of the bird sprite.
+- HEIGHT_BIRD (float): Height of the bird sprite.
+- WIDTH_PIPES (int): Width of the pipes in the game.
+- PIPE_VELOCITY (float): Velocity of the pipes in the game.
+- PIPE_TO_PIPE (int): Distance between consecutive pipes.
+- GRAVITY (float): Gravity affecting the bird's vertical motion.
+- BIRD_VELOCITY_Y (float): Vertical velocity of the bird.
+- BIRD_MAX_VELOCITY_Y (float): Maximum vertical velocity of the bird.
+- MUTATION_THRESHOLD (float): Threshold for mutation during genetic algorithm.
+- N_POPULATION_BIRD (int): Number of birds in each population.
+- FPS (int): Frames per second for the game.
+'''
 import os
 
 import pygame
@@ -7,17 +30,17 @@ bird_image = pygame.image.load(path + '\\assets\\bird.png')
 pipe_image = pygame.image.load(path + '\\assets\\red_pipe.png')
 background_image = pygame.image.load(path + '\\assets\\background.png')
 
-score_colors = '#1C3C7B'
-width = 800
-height = 600
-width_bird = width / 10
-height_bird = height / 2
-width_pipes = 50
-pipe_velocity = .3
-pipe_to_pipe = 1300
-gravity = .2
-bird_velocity_y = -10
-bird_max_velocity_y = 5
-mutation_threshold = 0.3
-n_population_bird = 8
-fps = 60
+SCORE_COLORS = '#1C3C7B'
+WIDTH = 800
+HEIGHT = 600
+WIDTH_BIRD = WIDTH / 10
+HEIGHT_BIRD = HEIGHT / 2
+WIDTH_PIPES = 50
+PIPE_VELOCITY = .3
+PIPE_TO_PIPE = 1300
+GRAVITY = .2
+BIRD_VELOCOCITY_Y = -10
+BIRD_MAX_VELOCOCITY_Y = 5
+MUTATION_THRESHOLD = 0.3
+N_POPULATION_BIRD = 7
+FPS = 60
