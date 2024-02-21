@@ -55,8 +55,8 @@ class PipeManager():
         """
         Create a new pair of pipes.
         """
-        height_1 = random.randint(HEIGHT/5, HEIGHT/1.5)
-        gap = random.randint(100, 150)
+        height_1 = random.randint(HEIGHT/5, HEIGHT/2)
+        gap = random.randint(120, 170)
         height_2 = HEIGHT - (height_1 + gap)
 
         hitbox_1 = (self.pipe_width, 0, self.pipe_width, height_1)
