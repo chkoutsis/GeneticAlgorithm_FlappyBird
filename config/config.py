@@ -10,7 +10,6 @@ Variables:
 - WIDTH (int): Width of the game window.
 - HEIGHT (int): Height of the game window.
 - WIDTH_BIRD (float): Width of the bird sprite.
-- HEIGHT_BIRD (float): Height of the bird sprite.
 - WIDTH_PIPES (int): Width of the pipes in the game.
 - PIPE_VELOCITY (float): Velocity of the pipes in the game.
 - PIPE_TO_PIPE (int): Distance between consecutive pipes.
@@ -34,13 +33,12 @@ SCORE_COLORS = '#1C3C7B'
 WIDTH = 800
 HEIGHT = 600
 WIDTH_BIRD = WIDTH / 10
-HEIGHT_BIRD = HEIGHT / 2
 WIDTH_PIPES = 50
 PIPE_VELOCITY = .3
-PIPE_TO_PIPE = 1300
-GRAVITY = .2
+PIPE_TO_PIPE = 1600
+GRAVITY = .9
 BIRD_VELOCOCITY_Y = -10
 BIRD_MAX_VELOCOCITY_Y = 5
 MUTATION_THRESHOLD = 0.3
-N_POPULATION_BIRD = 7
+N_POPULATION_BIRD = 10
 FPS = 60
