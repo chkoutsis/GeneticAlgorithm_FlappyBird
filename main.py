@@ -1,4 +1,3 @@
-import os
 import sys
 
 import pygame
@@ -9,8 +8,6 @@ from core.pipe_manager import PipeManager
 from genetic_algorithms.genetic_algorithm import bird_population, reproduction
 from interface.interface import game_player, generation_text
 from setup.setup import initialize_game
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 
 def run(game_display_f, background_f, clock_f):
