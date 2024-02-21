@@ -1,6 +1,8 @@
 from config.config import (BIRD_MAX_VELOCOCITY_Y, BIRD_VELOCOCITY_Y, GRAVITY,
-                           HEIGHT_BIRD, WIDTH_BIRD)
+                           HEIGHT, WIDTH_BIRD)
 from genetic_algorithms.model import dna
+
+import random
 
 
 class Bird:
@@ -26,7 +28,7 @@ class Bird:
         - is_alive (bool): Flag indicating whether the bird is alive or not.
         """
         self.x = WIDTH_BIRD
-        self.y = HEIGHT_BIRD
+        self.y = random.uniform(0, HEIGHT)  # HEIGHT_BIRD
         self.move_x = 0
         self.move_y = 0
         self.dna = dna()
