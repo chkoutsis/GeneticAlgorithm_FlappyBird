@@ -34,13 +34,31 @@ def crossover(parent_bird_1, parent_bird_2):
     - child (Bird): The resulting child bird from the crossover.
     """
     child = Bird()
-    kid = [
-        hidden_layer(parent_bird_1, parent_bird_2)[0],
-        hidden_layer(parent_bird_1, parent_bird_2)[1],
-        output_layer(parent_bird_1, parent_bird_2)[0],
-        output_layer(parent_bird_1, parent_bird_2)[1],
-    ]
-    child.dna.set_weights(kid)
+    child_model = child.dna
+    for child_layer, parent_layer_1, parent_layer_2 in zip(
+            child_model.layers,
+            parent_bird_1.dna.layers,
+            parent_bird_2.dna.layers):
+        if child_layer.get_weights():
+            weights_parent_1 = parent_layer_1.get_weights()
+            weights_parent_2 = parent_layer_2.get_weights()
+            weights_to_use = []
+            for w1, w2 in zip(weights_parent_1, weights_parent_2):
+                if w1.shape != w2.shape:
+                    weights_to_use.append(
+                        np.random.uniform(-1, 1, size=w1.shape) * 0.5)
+                else:
+                    weights_to_use.append(0.5 * (w1 + w2))
+            weights_mutated = [mutation(w, MUTATION_THRESHOLD)
+                               for w in weights_to_use]
+            for w, w_mutated in zip(weights_to_use, weights_mutated):
+                if isinstance(w, np.ndarray) and w.shape != w_mutated.shape:
+                    weights_mutated = [np.random.uniform(-1, 1, size=w.shape)
+                                       for _ in range(len(weights_to_use))]
+                    break
+
+            child_layer.set_weights(weights_mutated)
+    child.dna = child_model
     return child
 
 
@@ -55,8 +73,9 @@ def mutation(weight, mutation_threshold_var):
     Returns:
     - float: Mutated weight if mutation occurs, otherwise the original weight.
     """
-    if random.random() < mutation_threshold_var:
-        return np.random.uniform(-1, 1)
+    if isinstance(weight, np.ndarray):
+        if random.random() < mutation_threshold_var:
+            return np.random.uniform(-1, 1, size=weight.shape)
     return weight
 
 
@@ -95,69 +114,3 @@ def reproduction(population):
         child = crossover(parent_bird_1, parent_bird_2)
         new_population.append(child)
     return new_population
-
-
-def generate_layer(parent_bird_1, parent_bird_2, weight_index):
-    """
-    Generate weights and bias for a neural network layer.
-
-    Parameters:
-    - parent_bird_1 (Bird): First parent bird.
-    - parent_bird_2 (Bird): Second parent bird.
-    - weight_index (int): Index indicating the type of weights and bias.
-                        0 for hidden layer, 2 for output layer.
-
-    Returns:
-    - mutation_child_weights (numpy.ndarray): Mutated weights for the layer.
-    - child_bias (numpy.ndarray): Bias for the layer.
-    """
-    parent_1_weights = parent_bird_1.dna.get_weights()[weight_index]
-    parent_2_weights = parent_bird_2.dna.get_weights()[weight_index]
-    child_weights = []
-
-    for parent_1_weights_i in parent_1_weights:
-        new_weights_i = [(w1 + w2) / 2 for w1, w2 in zip(parent_1_weights_i,
-                                                         parent_2_weights[len(child_weights)])]
-        child_weights.append(new_weights_i)
-
-    mutation_child_weights = [
-        [mutation(w, MUTATION_THRESHOLD) for w in weight_i] for weight_i in child_weights
-    ]
-
-    parent_1_bias = parent_bird_1.dna.get_weights()[weight_index + 1]
-    parent_2_bias = parent_bird_2.dna.get_weights()[weight_index + 1]
-    child_bias = [(b1 + b2) / 2 for b1,
-                  b2 in zip(parent_1_bias, parent_2_bias)]
-
-    return np.array(mutation_child_weights, dtype="float32"), \
-        np.array(child_bias, dtype="float32")
-
-
-def hidden_layer(parent_bird_1, parent_bird_2):
-    """
-    Generate weights and bias for a hidden layer in a neural network.
-
-    Parameters:
-    - parent_bird_1 (Bird): First parent bird.
-    - parent_bird_2 (Bird): Second parent bird.
-
-    Returns:
-    - mutation_child_weights (numpy.ndarray): Mutated weights for the hidden layer.
-    - child_bias (numpy.ndarray): Bias for the hidden layer.
-    """
-    return generate_layer(parent_bird_1, parent_bird_2, weight_index=0)
-
-
-def output_layer(parent_bird_1, parent_bird_2):
-    """
-    Generate weights and bias for an output layer in a neural network.
-
-    Parameters:
-    - parent_bird_1 (Bird): First parent bird.
-    - parent_bird_2 (Bird): Second parent bird.
-
-    Returns:
-    - mutation_child_weights (numpy.ndarray): Mutated weights for the output layer.
-    - child_bias (numpy.ndarray): Bias for the output layer.
-    """
-    return generate_layer(parent_bird_1, parent_bird_2, weight_index=2)
